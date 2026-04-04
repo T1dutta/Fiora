@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+google-generativeai
+gTTS
+elevenlabs
+pymongo
+faiss-cpu
+sentence-transformers
+python-multipart
+python-dotenv
+pytest
+httpx
+pandas
+numpy
+scikit-learn
+joblib
