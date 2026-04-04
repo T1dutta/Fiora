@@ -1,0 +1,947 @@
+# 🌸 Shakti - AI Women's Health Companion
+
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> **Shakti** is a comprehensive AI-powered women's health companion that combines conversational AI, machine learning, voice interfaces, and blockchain technology to deliver personalized, empathetic healthcare guidance with cutting-edge privacy protection.
+
+---
+
+## 📋 Table of Contents
+
+- [✨ Overview](#-overview)
+- [🎯 Core Features](#-core-features)
+- [🏗️ System Architecture](#️-system-architecture)
+- [💻 Technology Stack](#-technology-stack)
+- [📡 API Endpoints](#-api-endpoints)
+- [📁 Project Structure](#-project-structure)
+- [⚙️ Setup & Installation](#️-setup--installation)
+- [🔧 Configuration](#-configuration)
+- [🚀 Running the Application](#-running-the-application)
+- [🧪 Testing](#-testing)
+- [📊 Data Flow](#-data-flow)
+- [🔒 Security & Privacy](#-security--privacy)
+- [📚 Usage Examples](#-usage-examples)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
+---
+
+## ✨ Overview
+
+**Shakti** (Sanskrit for "divine feminine power") is an intelligent health companion specifically designed for women's wellness. It leverages state-of-the-art AI technologies to provide:
+
+- 🤖 **Intelligent Conversations** - Context-aware health guidance powered by Google Gemini 2.5 Flash
+- 🔬 **Clinical Screening** - Machine learning-based endometriosis risk assessment
+- 🗣️ **Voice Interaction** - Hands-free communication with speech recognition and synthesis
+- 📚 **Knowledge Retrieval** - RAG (Retrieval-Augmented Generation) system for evidence-based responses
+- 🔐 **Privacy First** - Blockchain-based consent management on Algorand testnet
+- 📊 **Pattern Recognition** - Historical health data analysis and insights
+- 🎓 **Health Education** - Interactive learning modules with flashcards and quizzes
+- 🔔 **Proactive Care** - Stress and wearable-triggered health alerts
+
+---
+
+## 🎯 Core Features
+
+### 1. 🗨️ AI Chat Engine
+- **Powered by Google Gemini 2.5 Flash** for natural, empathetic conversations
+- **Cycle-Aware Responses** - Adapts guidance based on menstrual cycle phase
+- **Session Management** - Conversation compression for context preservation
+- **Multi-turn Dialogue** - Maintains conversation history and context
+
+### 2. 🎤 Voice Interface
+- **Speech-to-Text** - Gemini multimodal audio transcription
+- **Text-to-Speech** - ElevenLabs professional voice synthesis with gTTS fallback
+- **Seamless Integration** - Voice input/output through `/voice-chat` endpoint
+
+### 3. 🧠 RAG (Retrieval-Augmented Generation) System
+- **FAISS Vector Database** - Efficient similarity search
+- **Sentence Transformers** - all-MiniLM-L6-v2 embeddings
+- **Multi-Source Knowledge** - Combines health_kb.txt and CSV datasets
+- **Real-time Retrieval** - Context-enriched AI responses
+
+### 4. 🔬 Endometriosis ML Model
+- **Random Forest Classifier** - Trained on 1000+ clinical records
+- **Risk Screening** - Personalized endometriosis risk assessment
+- **Feature Engineering** - 20+ clinical and symptom features
+- **Personalized Advice** - Risk-stratified health recommendations
+
+### 5. ⛓️ Blockchain Consent Management
+- **Algorand Testnet Integration** - Immutable consent records
+- **Smart Consent** - Cryptographically signed user agreements
+- **Privacy Protection** - Decentralized data sovereignty
+
+### 6. 📝 Daily Check-ins
+- **Symptom Tracking** - Mood, pain levels, and health metrics
+- **Adaptive Guidance** - Personalized responses based on inputs
+- **Historical Logging** - MongoDB-backed data persistence
+
+### 7. 📊 Pattern Insights
+- **Trend Analysis** - Identifies health patterns over time
+- **Predictive Insights** - Forecasts based on historical data
+- **Visualization Ready** - Structured data for charting
+
+### 8. 🎓 Learning Module
+- **Interactive Flashcards** - Women's health education
+- **Quizzes** - Knowledge assessment and reinforcement
+- **Dynamic Content** - AI-generated educational materials
+
+### 9. 🔔 Proactive Alerts
+- **Stress Monitoring** - Triggered by high-stress indicators
+- **Wearable Integration** - Compatible with health device data
+- **Contextual Alerts** - Personalized health notifications
+
+### 10. 📄 Session Summaries
+- **Conversation Compression** - Maintains context efficiently
+- **Key Point Extraction** - Summarizes important health information
+- **Context Management** - Optimizes token usage for long conversations
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────────┐
+│                           SHAKTI AI HEALTH COMPANION                           │
+└────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┐          ┌──────────────────────────────────────────────┐
+│      FRONTEND       │          │              BACKEND (FastAPI)               │
+│  ┌───────────────┐  │          │  ┌────────────────────────────────────────┐  │
+│  │  HTML/CSS/JS  │  │ ◀────▶   │  │         API LAYER (main.py)            │  │
+│  │   Interface   │  │  HTTP    │  │  /chat /voice-chat /onboarding /daily  │  │
+│  └───────────────┘  │          │  │  /pattern /learn /alert /summarize     │  │
+│                     │          │  │  /train-model /screening /model-status │  │
+│  - Chat UI          │          │  └────────────────────────────────────────┘  │
+│  - Voice Controls   │          │                      │                       │
+│  - Visualizations   │          │         ┌────────────┴────────────┐          │
+└─────────────────────┘          │         │                         │          │
+                                 │  ┌──────▼────────┐       ┌────────▼──────┐  │
+                                 │  │   AI MODULES  │       │  DATA LAYER   │  │
+                                 │  ├───────────────┤       ├───────────────┤  │
+                                 │  │ • chat_agent  │       │ • MongoDB     │  │
+                                 │  │ • rag_system  │       │ • In-Memory   │  │
+                                 │  │ • voice       │       │ • Vector DB   │  │
+                                 │  │ • ml_model    │       │   (FAISS)     │  │
+                                 │  │ • learning    │       └───────────────┘  │
+                                 │  │ • consent     │                          │
+                                 │  └───────────────┘                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────────┐
+│                            EXTERNAL SERVICES                                   │
+├────────────────────────────────────────────────────────────────────────────────┤
+│  • Google Gemini 2.5 Flash API    • ElevenLabs Voice API                      │
+│  • Algorand Testnet               • MongoDB Atlas (optional)                   │
+└────────────────────────────────────────────────────────────────────────────────┘
+│  │              │     │                        │                         │ │
+│  │  • Onboarding│     │  ┌─────────────────────┴───────────────────────┐ │ │
+│  │  • Chat UI   │     │  │                                             │ │ │
+│  │  • Check-in  │     │  ▼                     ▼                    ▼  │ │ │
+│  │  • Learning  │     │  ┌──────────┐  ┌─────────────┐  ┌────────────┐ │ │
+│  │  • Insights  │     │  │AI ENGINE │  │  RAG SYSTEM │  │VOICE MODULE│ │ │
+│  └──────────────┘     │  │(Gemini)  │  │(FAISS+ST)   │  │(STT/TTS)   │ │ │
+│                       │  └──────────┘  └─────────────┘  └────────────┘ │ │
+│                       │        │              │               │        │ │
+│                       └────────┼──────────────┼───────────────┼────────┘ │
+│                                │              │               │          │
+│  ┌─────────────────────────────┼──────────────┼───────────────┼────────┐ │
+│  │                DATA LAYER   │              │               │        │ │
+│  │  ┌──────────────────────────┴──────────────┴───────────────┴──────┐ │ │
+│  │  │                                                                │ │ │
+│  │  │  ┌─────────────┐    ┌──────────────┐    ┌───────────────────┐  │ │ │
+│  │  │  │  MongoDB    │    │ Knowledge    │    │   Algorand        │  │ │ │
+│  │  │  │  - users    │    │ Base (RAG)   │    │   Blockchain      │  │ │ │
+│  │  │  │  - messages │    │ health_kb.txt│    │   (Consent Mgmt)  │  │ │ │
+│  │  │  │  - summaries│    │              │    │                   │  │ │ │
+│  │  │  └─────────────┘    └──────────────┘    └───────────────────┘  │ │ │
+│  │  │                                                                │ │ │
+│  │  └────────────────────────────────────────────────────────────────┘ │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Data Flow & Sources
+
+### 1️⃣ User Data Input
+
+| Data Type | Source | Collection Point | Storage |
+|-----------|--------|------------------|---------|
+| **Profile Data** | User onboarding form | `/onboarding` endpoint | MongoDB `users` collection |
+| **Cycle Information** | Onboarding form | Cycle length, last period date | MongoDB `users.cycle_data` |
+| **Health Goals** | Onboarding form | User-entered goals | MongoDB `users.cycle_data.health_goals` |
+| **Daily Check-ins** | Check-in form | Mood, pain level, symptoms | MongoDB `messages` (as context) |
+| **Chat Messages** | Chat interface | User questions/responses | MongoDB `messages` collection |
+| **Voice Input** | Audio recording | `/voice-chat` endpoint | Transcribed to text, then stored |
+
+### 2️⃣ Knowledge Base (RAG System)
+
+```
+data/health_kb.txt
+├── Menstrual cycle phase information
+├── Exercise recommendations per phase
+├── Nutrition advice (iron-rich foods, etc.)
+├── Common conditions (PCOS, Endometriosis)
+├── PMS symptom management
+└── Cycle tracking benefits
+```
+
+**How RAG Works:**
+1. Knowledge base is chunked into sentences (min 20 chars)
+2. Chunks are embedded using `sentence-transformers/all-MiniLM-L6-v2`
+3. Embeddings are indexed in FAISS for fast similarity search
+4. User queries are embedded and matched against the index
+5. Top 3 relevant chunks are retrieved and injected into AI context
+
+### 3️⃣ External Data Sources
+
+| Source | Purpose | Integration |
+|--------|---------|-------------|
+| **Google Gemini 2.5 Flash** | AI conversation, content generation | `google-generativeai` SDK |
+| **ElevenLabs** | Premium text-to-speech | `elevenlabs` SDK (optional) |
+| **gTTS** | Fallback text-to-speech | `gTTS` library (free) |
+| **Algorand Testnet** | Consent recording | `py-algorand-sdk` |
+
+---
+
+## Technology Stack
+
+### Backend
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Framework** | FastAPI | High-performance async API |
+| **AI Model** | Google Gemini 2.5 Flash | Conversational AI, content generation |
+| **Vector DB** | FAISS | Similarity search for RAG |
+| **Embeddings** | Sentence Transformers (all-MiniLM-L6-v2) | Text embedding for RAG |
+| **Database** | MongoDB | User data, messages, summaries |
+| **Blockchain** | Algorand (Testnet) | Consent management |
+| **Voice STT** | Gemini 2.5 Flash (multimodal) | Speech-to-text |
+| **Voice TTS** | ElevenLabs / gTTS | Text-to-speech |
+
+### Frontend
+| Component | Technology |
+|-----------|------------|
+| **HTML/CSS** | Vanilla HTML5, CSS3 |
+| **JavaScript** | Vanilla ES6+ |
+| **Storage** | localStorage (user session) |
+
+---
+
+## Module Breakdown
+
+### `/ai/` - AI Engine
+
+#### `engine.py` - Core Conversational AI
+```python
+# Functions:
+├── get_chat_response()      # Main chat with history & RAG context
+├── run_onboarding()         # Personalized welcome message
+├── run_daily_checkin()      # Analyze mood/symptoms, give tips
+├── generate_pattern_insight()   # Analyze health patterns over time
+├── generate_learning_content()  # Create flashcards & quizzes (JSON)
+├── generate_proactive_alert()   # Stress/wearable-triggered messages
+└── generate_session_summary()   # Summarize conversation history
+```
+
+**System Prompt Features:**
+- Warm, empathetic, non-judgmental tone
+- Never diagnoses medical conditions
+- Always recommends consulting professionals for serious symptoms
+- Keeps responses under 150 words
+- Aware of user's current cycle phase
+
+#### `rag.py` - Retrieval Augmented Generation
+```python
+# Components:
+├── _model         # SentenceTransformer embedding model
+├── _index         # FAISS IndexFlatIP (inner product)
+├── _chunks        # Knowledge base text chunks
+├── _load_kb()     # Load & embed knowledge base
+└── query_rag()    # Retrieve top-k relevant chunks
+```
+
+#### `voice.py` - Voice Interface
+```python
+# Functions:
+├── transcribe_audio()  # Gemini multimodal STT (free)
+└── text_to_speech()    # ElevenLabs (premium) → gTTS (fallback)
+```
+
+### `/db/` - Database Layer
+
+#### `mongo.py` - MongoDB Operations
+```python
+# Functions:
+├── get_user()              # Retrieve user profile
+├── save_user()             # Create/update user
+├── save_message()          # Store chat message
+├── get_session_messages()  # Retrieve chat history (limit: 20)
+├── save_summary()          # Store session summary
+└── get_summaries()         # Retrieve past summaries
+
+# Fallback: In-memory storage if MongoDB unavailable
+```
+
+### `/blockchain/` - Consent Management
+
+#### `algorand.py` - Algorand Integration
+```python
+# Functions:
+├── check_consent()   # Verify user consent status
+└── record_consent()  # Write consent hash to blockchain
+
+# Note: Graceful degradation if no wallet configured
+```
+
+---
+
+## API Endpoints
+
+### Core Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Serve frontend |
+| `/health` | GET | Health check |
+| `/chat` | POST | Main chat interaction |
+| `/voice-chat` | POST | Voice-based chat |
+| `/onboarding` | POST | User registration |
+| `/daily-checkin` | POST | Log daily health status |
+| `/pattern-insight` | POST | Analyze health patterns |
+| `/learn` | POST | Generate educational content |
+| `/alert` | POST | Proactive stress alerts |
+| `/summarize-session` | POST | Summarize conversation |
+
+### Request/Response Schemas
+
+```python
+# Chat Request
+{
+    "user_id": "string",
+    "message": "string",
+    "use_rag": bool (optional)
+}
+
+# Onboarding Request
+{
+    "user_id": "string",
+    "cycle_length": int,
+    "last_period_date": "YYYY-MM-DD",
+    "health_goals": ["string"],
+    "concerns": ["string"] (optional)
+}
+
+# Daily Check-in Request
+{
+    "user_id": "string",
+    "mood": "happy|confident|neutral|anxious|sad|irritable",
+    "pain_level": 0-10,
+    "symptoms": ["string"] (optional)
+}
+
+# Learn Request
+{
+    "user_id": "string",
+    "topic": "string"
+}
+```
+
+---
+
+## Workflow Diagrams
+
+### User Onboarding Flow
+
+```
+┌──────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
+│  User    │───▶│  Frontend    │───▶│  /onboarding│───▶│  save_user() │
+│  Enters  │    │  Form Submit │    │  Endpoint   │    │  MongoDB     │
+│  Data    │    └──────────────┘    └─────────────┘    └──────────────┘
+└──────────┘                               │
+                                           ▼
+┌──────────┐    ┌──────────────┐    ┌─────────────┐
+│  Display │◀───│  run_        │◀───│  Gemini AI  │
+│  Welcome │    │  onboarding()│    │  Generate   │
+│  Message │    └──────────────┘    │  Welcome    │
+└──────────┘                        └─────────────┘
+```
+
+### Chat Flow (with RAG)
+
+```
+┌──────────┐    ┌──────────────┐    ┌─────────────────────────────────────┐
+│  User    │───▶│  /chat       │───▶│  1. get_user() - Load profile       │
+│  Message │    │  Endpoint    │    │  2. get_session_messages() - History│
+└──────────┘    └──────────────┘    │  3. get_summaries() - Past context  │
+                                    │  4. query_rag() - Knowledge lookup  │
+                                    │  5. check_consent() - Privacy check │
+                                    └─────────────────────────────────────┘
+                                                    │
+                                                    ▼
+┌──────────┐    ┌──────────────┐    ┌─────────────────────────────────────┐
+│  Display │◀───│  save_message│◀───│  get_chat_response()                │
+│  Reply   │    │  to MongoDB  │    │  - Inject cycle context             │
+│          │    └──────────────┘    │  - Build Gemini history             │
+└──────────┘                        │  - Include RAG context              │
+                                    │  - Generate response                │
+                                    └─────────────────────────────────────┘
+```
+
+### Voice Chat Flow
+
+```
+┌──────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
+│  User    │───▶│  /voice-chat │───▶│ transcribe_ │───▶│  Gemini      │
+│  Audio   │    │  Endpoint    │    │ audio()     │    │  Multimodal  │
+│  Record  │    └──────────────┘    └─────────────┘    │  STT         │
+└──────────┘                               │           └──────────────┘
+                                           ▼
+┌──────────┐    ┌──────────────┐    ┌─────────────┐
+│  Play    │◀───│  text_to_    │◀───│  get_chat_  │
+│  Audio   │    │  speech()    │    │  response() │
+│  Reply   │    │  (ElevenLabs │    │             │
+└──────────┘    │  or gTTS)    │    └─────────────┘
+                └──────────────┘
+```
+
+### Learning Content Generation
+
+```
+┌──────────┐    ┌──────────────┐    ┌─────────────────────────────────────┐
+│  User    │───▶│  /learn      │───▶│  generate_learning_content()        │
+│  Enters  │    │  Endpoint    │    │  - Topic prompt                     │
+│  Topic   │    └──────────────┘    │  - Request JSON format              │
+└──────────┘                        │  - Gemini generates:                │
+                                    │    • 3 Flashcards (front/back)      │
+                                    │    • 1 Quiz (MCQ with answer)       │
+                                    └─────────────────────────────────────┘
+                                                    │
+                                                    ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Response JSON:                                                          │
+│  {                                                                       │
+│    "flashcards": [{"front": "Q", "back": "A"}, ...],                     │
+│    "quiz": {"question": "...", "options": [...], "answer": "..."}        │
+│  }                                                                       │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Database Schema
+
+### MongoDB Collections
+
+#### `users` Collection
+```javascript
+{
+    "user_id": "string",           // Unique identifier
+    "cycle_data": {
+        "cycle_length": 28,        // Days
+        "last_period_date": "YYYY-MM-DD",
+        "health_goals": ["goal1", "goal2"],
+        "concerns": ["concern1"]
+    },
+    "updated_at": ISODate()
+}
+```
+
+#### `messages` Collection
+```javascript
+{
+    "user_id": "string",
+    "role": "user" | "assistant",
+    "content": "string",
+    "ts": ISODate()
+}
+```
+
+#### `summaries` Collection
+```javascript
+{
+    "user_id": "string",
+    "summary": "string",           // AI-generated session summary
+    "ts": ISODate()
+}
+```
+
+### In-Memory Fallback
+When MongoDB is unavailable, data is stored in Python dictionaries:
+- `_in_memory_users`: Dict[user_id, user_doc]
+- `_in_memory_messages`: List[message_doc]
+- `_in_memory_summaries`: List[summary_doc]
+
+---
+
+## Security & Privacy
+
+### Data Protection
+
+| Feature | Implementation |
+|---------|----------------|
+| **Consent Management** | Algorand blockchain records consent hash |
+| **Conditional Storage** | Messages only saved if consent verified |
+| **No Diagnosis** | AI explicitly avoids medical diagnoses |
+| **Professional Referral** | Serious symptoms prompt doctor consultation |
+
+### Blockchain Consent Flow
+
+```
+┌──────────┐    ┌──────────────┐    ┌─────────────────────────────────────┐
+│  User    │───▶│  record_     │───▶│  1. Hash user_id (SHA-256)          │
+│  Consents│    │  consent()   │    │  2. Create Algorand transaction     │
+└──────────┘    └──────────────┘    │  3. Sign with wallet mnemonic       │
+                                    │  4. Submit to Algorand Testnet      │
+                                    │  5. Return transaction ID           │
+                                    └─────────────────────────────────────┘
+```
+
+### Privacy Features
+- **Graceful Degradation**: Works without Algorand wallet (dev mode)
+- **In-Memory Option**: Functions without MongoDB connection
+- **No External Data Sharing**: All processing happens server-side
+- **Consent Check**: Every message save checks consent status
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+- Python 3.10+
+- MongoDB (optional, has in-memory fallback)
+- Google Gemini API Key
+- ElevenLabs API Key (optional)
+- Algorand Wallet (optional)
+
+### Installation Steps
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd shakti-app
+
+# 2. Create virtual environment
+python -m venv .venv
+.venv\Scripts\Activate.ps1  # Windows PowerShell
+# or
+source .venv/bin/activate    # Linux/Mac
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment
+cp .env.example .env
+# Edit .env with your API keys
+
+# 5. Run the application
+uvicorn main:app --reload --port 8000
+```
+
+### Quick Start (PowerShell)
+```powershell
+.\run.ps1
+```
+
+---
+
+## Configuration
+
+### Environment Variables (`.env`)
+
+```env
+# Required
+GEMINI_API_KEY=your_google_gemini_api_key
+
+# Optional - MongoDB (uses in-memory if not set)
+MONGODB_URI=mongodb://localhost:27017/shaktidb
+
+# Optional - Voice (falls back to gTTS if not set)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+
+# Optional - Blockchain (bypasses consent check if not set)
+ALGORAND_MNEMONIC=your_25_word_mnemonic
+
+# Optional - Frontend
+FRONTEND_URL=http://localhost:3000
+```
+
+---
+
+## Testing
+
+### Run Tests
+```bash
+pytest tests/ -v
+```
+
+### Test Coverage
+| Test | Description |
+|------|-------------|
+| `test_health_check` | API health endpoint |
+| `test_chat_basic` | Basic chat functionality |
+| `test_chat_with_rag` | Chat with RAG retrieval |
+| `test_chat_unknown_user` | User not found handling |
+| `test_onboarding` | User registration flow |
+| `test_daily_checkin` | Daily check-in flow |
+| `test_context_length_limit` | History capped at 20 messages |
+
+### Mocking Strategy
+Tests mock all external services:
+- `ai.engine.genai` - Gemini API
+- `db.mongo._db` - MongoDB
+- `blockchain.algorand.check_consent` - Algorand
+
+---
+
+## Project Structure
+
+```
+shakti-app/
+├── main.py                 # FastAPI application & routes
+├── requirements.txt        # Python dependencies
+├── run.ps1                 # PowerShell startup script
+├── .env                    # Environment variables (not in git)
+│
+├── ai/                     # AI Engine
+│   ├── engine.py           # Gemini chat & content generation
+│   ├── rag.py              # FAISS + Sentence Transformers
+│   └── voice.py            # STT (Gemini) + TTS (ElevenLabs/gTTS)
+│
+├── db/                     # Database Layer
+│   ├── mongo.py            # MongoDB operations + in-memory fallback
+│   └── models.py           # (Reserved for Pydantic models)
+│
+├── blockchain/             # Blockchain Integration
+│   └── algorand.py         # Consent management on Algorand
+│
+├── data/                   # Static Data
+│   └── health_kb.txt       # Knowledge base for RAG
+│
+├── frontend/               # Web Interface
+│   ├── index.html          # Single-page app
+│   ├── style.css           # Styling
+│   └── app.js              # Client-side logic
+│
+└── tests/                  # Test Suite
+    └── test_api.py         # API endpoint tests
+```
+
+---
+
+## Features Summary
+
+| Feature | Technology | Status |
+|---------|------------|--------|
+| 💬 Conversational AI | Gemini 2.5 Flash | ✅ Active |
+| 📚 RAG Knowledge Base | FAISS + Sentence Transformers | ✅ Active |
+| 🎤 Voice Input | Gemini Multimodal STT | ✅ Active |
+| 🔊 Voice Output | ElevenLabs / gTTS | ✅ Active |
+| 📅 Cycle Tracking | MongoDB | ✅ Active |
+| 📊 Pattern Analysis | Gemini Analysis | ✅ Active |
+| 🎓 Learning Content | JSON Flashcards/Quizzes | ✅ Active |
+| 🔐 Blockchain Consent | Algorand Testnet | ✅ Active |
+| 💾 Offline Fallback | In-Memory Storage | ✅ Active |
+
+---
+
+## Deployment
+
+### Local Development
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Production Deployment
+
+#### Docker (Recommended)
+```dockerfile
+# Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+```bash
+docker build -t shakti-app .
+docker run -p 8000:8000 --env-file .env shakti-app
+```
+
+#### Cloud Platforms
+| Platform | Command/Notes |
+|----------|---------------|
+| **Railway** | Connect repo, set env vars, deploy |
+| **Render** | Use `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| **Heroku** | Add `Procfile`: `web: uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| **AWS EC2** | Use systemd service + nginx reverse proxy |
+| **Google Cloud Run** | Containerize and deploy |
+
+### Production Checklist
+- [ ] Set `MONGODB_URI` to production MongoDB Atlas cluster
+- [ ] Secure `GEMINI_API_KEY` with proper IAM
+- [ ] Configure `ALGORAND_MNEMONIC` for mainnet (if using)
+- [ ] Set up HTTPS with SSL certificates
+- [ ] Configure CORS for production frontend URL
+- [ ] Set up monitoring (health endpoint: `/health`)
+- [ ] Configure rate limiting (nginx or FastAPI middleware)
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `MONGODB_URI not set` | No MongoDB connection | App uses in-memory fallback (data lost on restart) |
+| `Gemini API Error` | Invalid/missing API key | Verify `GEMINI_API_KEY` in `.env` |
+| `ElevenLabs TTS failed` | API limit or invalid key | Falls back to gTTS automatically |
+| `CORS error in browser` | Frontend URL not allowed | Add frontend URL to `FRONTEND_URL` env var |
+| `User not found (404)` | User hasn't onboarded | Complete onboarding flow first |
+| `RAG returning empty` | Knowledge base empty | Check `data/health_kb.txt` exists with content |
+
+### Debug Mode
+```bash
+# Run with detailed logs
+uvicorn main:app --reload --log-level debug
+```
+
+### Verify Services
+```bash
+# Test API health
+curl http://localhost:8000/health
+
+# Test chat (after onboarding)
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "test_user", "message": "Hello"}'
+```
+
+### MongoDB Connection Test
+```python
+from pymongo import MongoClient
+client = MongoClient("your_mongodb_uri", serverSelectionTimeoutMS=2000)
+client.admin.command('ping')  # Should not raise exception
+```
+
+---
+
+## Performance Considerations
+
+| Component | Optimization | Details |
+|-----------|--------------|---------|
+| **RAG Index** | Loaded at startup | FAISS index built once at import time |
+| **Embeddings** | Cached model | SentenceTransformer loaded once globally |
+| **Chat History** | Limited to 20 | Prevents token overflow, reduces latency |
+| **Session Summaries** | Limited to 3 | Only recent summaries included in context |
+| **TTS Fallback** | Graceful degradation | ElevenLabs → gTTS (no failure on premium unavailable) |
+| **DB Fallback** | In-memory option | Works without MongoDB (development mode) |
+
+### Estimated Latencies
+| Operation | Typical Latency |
+|-----------|-----------------|
+| Chat response (Gemini) | 1-3 seconds |
+| RAG query (FAISS) | <50ms |
+| Voice transcription | 1-2 seconds |
+| Text-to-speech | 0.5-2 seconds |
+| MongoDB operations | <100ms |
+
+---
+
+## Limitations & Known Issues
+
+### Current Limitations
+| Limitation | Details |
+|------------|---------|
+| **No Real-time Sync** | Multiple tabs don't sync automatically |
+| **Single Language** | Currently English only |
+| **No Wearable Integration** | Alert endpoint is manual trigger only |
+| **In-Memory Loss** | Data lost on restart if no MongoDB |
+| **No Authentication** | User ID is self-reported, no password |
+| **No Rate Limiting** | Built-in rate limiting not implemented |
+
+### AI Limitations
+- **Never Diagnoses**: Explicitly avoids medical diagnosis
+- **General Advice Only**: Cannot replace professional medical consultation
+- **Token Limits**: Very long conversations may lose early context
+- **Hallucination Risk**: May occasionally provide inaccurate information
+
+---
+
+## Future Roadmap
+
+### Planned Features
+| Feature | Priority | Status |
+|---------|----------|--------|
+| 🔐 User Authentication (JWT) | High | Planned |
+| 📱 Mobile App (React Native) | High | Planned |
+| ⌚ Wearable Integration (Fitbit/Apple Watch) | Medium | Planned |
+| 🌍 Multi-language Support | Medium | Planned |
+| 📊 Analytics Dashboard | Medium | Planned |
+| 🔔 Push Notifications | Low | Planned |
+| 👥 Community Forums | Low | Planned |
+| 🩺 Telemedicine Integration | Low | Planned |
+
+### Technical Improvements
+- [ ] WebSocket for real-time chat
+- [ ] Redis caching layer
+- [ ] PostgreSQL option for relational queries
+- [ ] Kubernetes deployment manifests
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] OpenTelemetry observability
+- [ ] A/B testing framework
+
+---
+
+## API Examples (cURL)
+
+### Complete Workflow Example
+
+```bash
+# 1. Onboard a new user
+curl -X POST http://localhost:8000/onboarding \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "jane_doe",
+    "cycle_length": 28,
+    "last_period_date": "2025-03-20",
+    "health_goals": ["track mood", "reduce cramps", "better sleep"],
+    "concerns": ["irregular cycles", "PMS"]
+  }'
+
+# 2. Chat with Shakti
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "jane_doe",
+    "message": "What foods help with cramps?",
+    "use_rag": true
+  }'
+
+# 3. Daily check-in
+curl -X POST http://localhost:8000/daily-checkin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "jane_doe",
+    "mood": "tired",
+    "pain_level": 6,
+    "symptoms": ["cramps", "bloating", "headache"]
+  }'
+
+# 4. Learn about a topic
+curl -X POST http://localhost:8000/learn \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "jane_doe",
+    "topic": "luteal phase"
+  }'
+
+# 5. Get pattern insights
+curl -X POST http://localhost:8000/pattern-insight \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "jane_doe"}'
+
+# 6. Summarize session
+curl -X POST http://localhost:8000/summarize-session \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "jane_doe"}'
+
+# 7. Trigger proactive alert (simulating wearable data)
+curl -X POST http://localhost:8000/alert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "jane_doe",
+    "stress_level": "high",
+    "context": "Elevated heart rate detected at 2 AM"
+  }'
+```
+
+---
+
+## Contributing
+
+### Development Setup
+```bash
+# Fork and clone the repository
+git clone https://github.com/your-username/shakti-app.git
+cd shakti-app
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Install dev dependencies
+pip install -r requirements.txt
+pip install pytest pytest-cov black flake8
+
+# Run tests before committing
+pytest tests/ -v
+
+# Format code
+black .
+flake8 .
+```
+
+### Pull Request Guidelines
+1. Create feature branch from `main`
+2. Write tests for new features
+3. Ensure all tests pass
+4. Update documentation if needed
+5. Submit PR with clear description
+
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints where possible
+- Keep functions under 50 lines
+- Write docstrings for public functions
+
+---
+
+## Changelog
+
+### v1.0.0 (Current)
+- ✅ Core chat functionality with Gemini 2.5 Flash
+- ✅ RAG system with FAISS + Sentence Transformers
+- ✅ Voice interface (STT/TTS)
+- ✅ User onboarding and cycle tracking
+- ✅ Daily check-in with symptom logging
+- ✅ Learning content generation (flashcards/quizzes)
+- ✅ Pattern analysis and session summaries
+- ✅ Algorand blockchain consent management
+- ✅ MongoDB with in-memory fallback
+- ✅ Web frontend (HTML/CSS/JS)
+
+---
+
+## License
+
+This project is developed for hackathon/educational purposes.
+
+---
+
+## Contact
+
+For questions or contributions, please open an issue in the repository.
+
+---
+
+## Further Documentation
+
+📄 **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Deep-dive into system architecture, sequence diagrams, and technical decisions.
+
+---
+
+<div align="center">
+🌸 <strong>Shakti</strong> - Empowering Women's Health Through AI 🌸
+</div>

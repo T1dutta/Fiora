@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shakti Health Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-grid"></div>
+
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Shakti AI Dashboard</p>
+      <h1>Women's Health Companion Frontend</h1>
+      <p class="hero-copy">A single-page interface for chat, onboarding, and ML risk screening powered by your FastAPI backend.</p>
+    </div>
+    <div class="api-panel">
+      <label for="apiBase">API Base URL</label>
+      <input id="apiBase" type="text" value="http://127.0.0.1:8000" />
+      <button id="healthBtn" class="btn btn-secondary" type="button">Check API Health</button>
+      <p id="healthStatus" class="status">Idle</p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card reveal">
+      <h2>Onboarding</h2>
+      <form id="onboardingForm" class="form-grid">
+        <label>User ID <input name="user_id" value="demo_user" required></label>
+        <label>Cycle Length <input name="cycle_length" type="number" value="28" required></label>
+        <label>Last Period Date <input name="last_period_date" type="date" required></label>
+        <label>Age <input name="age" type="number" value="25"></label>
+        <label>BMI <input name="bmi" type="number" step="0.1" value="24.0"></label>
+        <label>Health Goals (comma-separated) <input name="health_goals" value="reduce cramps, track mood"></label>
+        <label>Concerns (comma-separated) <input name="concerns" value="irregular cycles"></label>
+        <button class="btn" type="submit">Submit Onboarding</button>
+      </form>
+      <pre id="onboardingResult" class="result"></pre>
+    </section>
+
+    <section class="card reveal">
+      <h2>Chat</h2>
+      <form id="chatForm" class="form-grid">
+        <label>User ID <input name="user_id" value="demo_user" required></label>
+        <label>Message <textarea name="message" rows="4" required>My periods are irregular and I have bloating.</textarea></label>
+        <label class="inline">
+          <input name="use_rag" type="checkbox" checked>
+          Use RAG Context
+        </label>
+        <button class="btn" type="submit">Send Chat</button>
+      </form>
+      <pre id="chatResult" class="result"></pre>
+    </section>
+
+    <section class="card reveal">
+      <h2>Endometriosis Screening</h2>
+      <form id="endoForm" class="form-grid">
+        <label>Age <input name="age" type="number" value="28" required></label>
+        <label>Menstrual Irregularity (0/1) <input name="menstrual_irregularity" type="number" min="0" max="1" value="1" required></label>
+        <label>Chronic Pain Level (0-10) <input name="chronic_pain_level" type="number" step="0.1" min="0" max="10" value="7.5" required></label>
+        <label>Hormone Abnormality (0/1) <input name="hormone_level_abnormality" type="number" min="0" max="1" value="0" required></label>
+        <label>Infertility (0/1) <input name="infertility" type="number" min="0" max="1" value="0" required></label>
+        <label>BMI <input name="bmi" type="number" step="0.1" value="24.5" required></label>
+        <button class="btn" type="submit">Run Endometriosis Screening</button>
+      </form>
+      <pre id="endoResult" class="result"></pre>
+    </section>
+
+    <section class="card reveal">
+      <h2>PCOS Screening</h2>
+      <form id="pcosForm" class="form-grid">
+        <label>Age <input name="age" type="number" value="25" required></label>
+        <label>BMI <input name="bmi" type="number" step="0.1" value="29.5" required></label>
+        <label>Menstrual Irregularity (0/1) <input name="menstrual_irregularity" type="number" min="0" max="1" value="1" required></label>
+        <label>Hirsutism (0/1) <input name="hirsutism" type="number" min="0" max="1" value="1" required></label>
+        <label>Acne (0/1) <input name="acne" type="number" min="0" max="1" value="1" required></label>
+        <button class="btn" type="submit">Run PCOS Screening</button>
+      </form>
+      <pre id="pcosResult" class="result"></pre>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Shakti Frontend Console</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

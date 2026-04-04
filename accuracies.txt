@@ -1,0 +1,5 @@
+--- PCOS MODEL ACCURACY ---
+Final PCOS Accuracy: 59.12%
+
+--- ENDOMETRIOSIS MODEL ACCURACY ---
+Final Endometriosis Accuracy: 66.62%
