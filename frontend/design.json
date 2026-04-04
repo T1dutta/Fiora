@@ -1,0 +1,152 @@
+{
+  "project_id": "14215802425040756900",
+  "title": "AI Chatbot",
+  "design_system": {
+    "name": "Ethereal Professional",
+    "creative_direction": "The Digital Sanctuary",
+    "theme": {
+      "colorMode": "LIGHT",
+      "font": "MANROPE",
+      "headlineFont": "MANROPE",
+      "bodyFont": "INTER",
+      "labelFont": "INTER",
+      "roundness": "ROUND_FULL",
+      "colors": {
+        "primary": "#630ed4",
+        "primary_container": "#7c3aed",
+        "secondary": "#b4136d",
+        "tertiary": "#005952",
+        "surface": "#fcf8ff",
+        "surface_container_low": "#f5f2ff",
+        "surface_container": "#efecfb",
+        "surface_container_highest": "#e3e1ef",
+        "surface_container_lowest": "#ffffff",
+        "on_surface": "#1b1b25",
+        "on_surface_variant": "#4a4455"
+      },
+      "typography": {
+        "display_lg": "3.5rem / Manrope / 700",
+        "headline_md": "1.75rem / Manrope / 600",
+        "body_lg": "1rem / Inter / 400 / 1.6 height",
+        "label_md": "0.75rem / Inter / 600 / 0.05em tracking"
+      }
+    }
+  },
+  "screens": [
+    {
+      "id": "12df6d98848e405ca164e897e0369638",
+      "title": "Dashboard",
+      "content": {
+        "identity": "Ethreal",
+        "welcome": "Good morning, Maya.",
+        "status_line": "You're in your power phase today.",
+        "tiles": [
+          { "label": "STATUS", "value": "Calm Mood" },
+          { "label": "NEXT UP", "value": "Morning Meditation" }
+        ],
+        "sections": [
+          {
+            "title": "Optimal Energy Window",
+            "card_text": "Your cortisol levels typically peak in 2 hours. A 5-minute breathing exercise now will stabilize your energy for the afternoon meeting."
+          },
+          {
+            "title": "Quick Actions",
+            "streak_card": {
+              "title": "14-Day Streak!",
+              "subtitle": "You're more consistent than 85% of users. Keep it up!",
+              "style": "primary-to-container-gradient"
+            }
+          },
+          {
+            "title": "Badge Collection",
+            "action": "View All"
+          }
+        ]
+      }
+    },
+    {
+      "id": "f8dfb4f2cbcf4608ace7145da150eeb8",
+      "title": "Period Tracker",
+      "content": {
+        "context": "Today • Day 12",
+        "phase": "Follicular Phase",
+        "current_month": "September 2024",
+        "prediction": {
+          "title": "Cycle Prediction",
+          "text": "Next period predicted in 18 days"
+        },
+        "upcoming": [
+          { "date": "September 30", "status": "Likely" },
+          { "date": "October 28", "status": "Predicted" },
+          { "date": "November 25", "status": "Predicted" }
+        ],
+        "sections": ["Daily Log"]
+      }
+    },
+    {
+      "id": "0570a704cbd442449cf3a25a50787ab1",
+      "title": "Education Hub",
+      "content": {
+        "header": "Cultivate Your Mind: Daily Reflections",
+        "sub_header": "Take a breath. Each card is a step in your journey.",
+        "sections": [
+          {
+            "title": "Mindful Insights",
+            "cards": [
+              { "title": "Hormones 101", "subtitle": "Decoding the chemical messengers of your body." }
+            ]
+          },
+          {
+            "title": "Reflect on Your Understanding",
+            "cards": [
+              {
+                "question": "What is the follicular phase?",
+                "nudge": "Based on your tracking, you might benefit from the 'Magnesium for Sleep' lesson tonight."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "d4e3ea4fa8f74d3792604d216fb0852e",
+      "title": "Exercise Module",
+      "content": {
+        "header": "Move with your flow.",
+        "subtitle": "Inhale... Exhale...",
+        "sections": [
+          {
+            "title": "Metabolic HIIT Surge",
+            "card": {
+              "status": "Workout saved!",
+              "text": "Building a beautiful streak. Energy metrics updated."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "1c1be4e745d74cba8c8e2e6b525c37b4",
+      "title": "AI Chatbot",
+      "content": {
+        "disclaimer": "AI may provide insights based on your health data. Consult a professional for medical advice.",
+        "sections": [
+          {
+            "title": "Daily Focus",
+            "items": [
+              { "task": "Green Tea Ritual", "status": "Completed 8:00 AM" },
+              { "task": "Meditation Session", "status": "Upcoming 4:00 PM" },
+              { "task": "New Article: The Science of Evening Rituals", "action": "Explore" }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "layout_rules": {
+    "no_line": "No 1px solid borders. Use background color shifts.",
+    "glassmorphism": "Footer: surface_container_lowest @ 70% opacity, 24px blur.",
+    "corners": "Standard: 1rem (16px), Cards: 2rem (32px), Pill: 9999px",
+    "shadows": "Ambient: rgba(27, 27, 37, 0.06), 32px blur, 8px offset"
+  }
+}
