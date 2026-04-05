@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../services/auth_token_store.dart';
+import '../services/user_prefs.dart';
+
 class SanctuaryProfileScreen extends StatefulWidget {
   const SanctuaryProfileScreen({super.key});
 
@@ -74,12 +77,17 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   /// HEADER
   Widget _header() {
     return Row(
-      children: const [
-        CircleAvatar(radius: 18, child: Icon(Icons.spa)),
-        SizedBox(width: 10),
-        Text("FIORA"),
-        Spacer(),
-        ImageIcon(AssetImage('assets/meditation.png'), size: 30),
+      children: [
+        const CircleAvatar(radius: 18, child: Icon(Icons.spa)),
+        const SizedBox(width: 10),
+        const Text("FIORA"),
+        const Spacer(),
+        IconButton(
+          tooltip: 'Health alerts',
+          icon: const Icon(Icons.notifications_outlined),
+          onPressed: () => Navigator.pushNamed(context, '/alerts'),
+        ),
+        const ImageIcon(AssetImage('assets/meditation.png'), size: 30),
       ],
     );
   }
@@ -574,17 +582,18 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-
-              /// TODO: logout logic
-              print("User Logged Out");
-
-              /// example navigation
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (_) => LoginScreen()),
-              // );
+              await AuthTokenStore.clear();
+              await UserPrefs.clearProfileName();
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/register',
+                (route) => false,
+              );
             },
             child: const Text("Log out"),
           ),

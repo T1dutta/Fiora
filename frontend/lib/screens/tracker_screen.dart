@@ -152,8 +152,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_colors.dart';
 import 'package:intl/intl.dart';
+
+import '../services/fiora_api.dart';
+import '../theme/app_colors.dart';
 
 class TrackerScreen extends StatefulWidget {
   const TrackerScreen({super.key});
@@ -167,6 +169,86 @@ class _TrackerScreenState extends State<TrackerScreen> {
   Set<int> selectedSymptoms = {};
   double painLevel = 3;
   final List<String> flowOptions = ["None", "Light", "Medium", "Heavy"];
+
+  static const List<String> _symptomLabels = [
+    "Bloating",
+    "Cramps",
+    "Headache",
+    "Backache",
+    "Acne",
+  ];
+
+  bool _savingLog = false;
+
+  /// Step: POST `/api/v1/periods` then show dialog if backend flagged severe cramps.
+  Future<void> _saveDailyLog() async {
+    if (_savingLog) {
+      return;
+    }
+    setState(() => _savingLog = true);
+    final flow = flowOptions[selectedFlow];
+    final symptoms = selectedSymptoms
+        .map((i) => _symptomLabels[i])
+        .toList();
+    final dateIso = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final api = FioraApi();
+    try {
+      final body = await api.postPeriodLog(
+        dateIso: dateIso,
+        flow: flow,
+        symptoms: symptoms,
+        painLevel: painLevel.round(),
+      );
+      if (!mounted) {
+        return;
+      }
+      final severe = body['severe_cramps'];
+      if (severe is Map<String, dynamic> && severe['triggered'] == true) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Important'),
+            content: Text(
+              severe['message']?.toString() ??
+                  'Elevated pain was detected. Consider rest and contacting a clinician if needed.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) {
+          return;
+        }
+      }
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Daily log saved')),
+      );
+    } on FioraApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Save failed (${e.statusCode})')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Save failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _savingLog = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -649,16 +731,22 @@ class _TrackerScreenState extends State<TrackerScreen> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: () {
-                print('Saved log');
-              },
-
+              onPressed: _savingLog ? null : _saveDailyLog,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: const Text(
-                  "Save Daily Log",
-                  style: TextStyle(color: Colors.white, fontSize: 17),
-                ),
+                child: _savingLog
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        "Save Daily Log",
+                        style: TextStyle(color: Colors.white, fontSize: 17),
+                      ),
               ),
             ),
           ),
