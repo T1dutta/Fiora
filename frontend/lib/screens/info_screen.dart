@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../services/fiora_api.dart';
+
+/// InfoPage — collects period health data after signup and PATCHes it to
+/// the backend via PATCH /profiles/me.
+///
+/// FIX: Previously the "Save Profile" button called
+///   Navigator.pushNamedAndRemoveUntil(context, '/home', ...)
+/// immediately, without any API call. This meant the user's height, weight,
+/// last period date, flow, symptoms and mood were thrown away and never
+/// reached the database.
+///
+/// Now:
+///  1. We build a patch payload from every field.
+///  2. We call FioraApi().patchProfileInfo(...) which hits PATCH /api/v1/profiles/me.
+///  3. Only on success do we navigate to /home.
+///  4. Errors are shown in a SnackBar so the user knows something went wrong.
 class InfoPage extends StatefulWidget {
   const InfoPage({super.key});
 
@@ -8,22 +24,25 @@ class InfoPage extends StatefulWidget {
 }
 
 class _InfoPageState extends State<InfoPage> {
-  TextEditingController heightController = TextEditingController(text: "170");
-
-  TextEditingController weightController = TextEditingController(text: "65");
-
-  TextEditingController dateController = TextEditingController();
+  final TextEditingController heightController =
+      TextEditingController(text: "170");
+  final TextEditingController weightController =
+      TextEditingController(text: "65");
+  final TextEditingController dateController = TextEditingController();
 
   double flowValue = 5;
   bool bloating = true;
-
   int selectedMood = 0;
+  bool _saving = false;
 
-  List<String> moods = ["Happy", "Irritated", "Energetic", "Calm", "Sad"];
+  // Raw DateTime so we can send ISO-8601 to the backend.
+  DateTime? _lastPeriodDate;
+
+  final List<String> moods = ["Happy", "Irritated", "Energetic", "Calm", "Sad"];
 
   Set<String> symptoms = {};
 
-  List<String> symptomsList = [
+  final List<String> symptomsList = [
     "Everything is fine",
     "Cramps",
     "Tender breasts",
@@ -37,6 +56,53 @@ class _InfoPageState extends State<InfoPage> {
     "Vaginal dryness",
     "Hot flashes",
   ];
+
+  final _api = FioraApi();
+
+  Future<void> _saveProfile() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+
+    // Build symptom list (include bloating if selected)
+    final List<String> allSymptoms = [
+      ...symptoms,
+      if (bloating) 'Bloating',
+    ];
+
+    try {
+      await _api.patchProfileInfo(
+        heightCm: double.tryParse(heightController.text.trim()),
+        weightKg: double.tryParse(weightController.text.trim()),
+        lastPeriodDateIso: _lastPeriodDate != null
+            ? "${_lastPeriodDate!.year.toString().padLeft(4, '0')}-"
+                "${_lastPeriodDate!.month.toString().padLeft(2, '0')}-"
+                "${_lastPeriodDate!.day.toString().padLeft(2, '0')}"
+            : null,
+        flowRating: flowValue.round(),
+        mood: moods[selectedMood],
+        symptoms: allSymptoms,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile saved ✓")),
+      );
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } on FioraApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Save failed (${e.statusCode}): ${e.body}")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error saving profile: $e")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +118,6 @@ class _InfoPageState extends State<InfoPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// TITLE
             const Text(
               "Nurture Your Digital Wellbeing",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -60,19 +125,16 @@ class _InfoPageState extends State<InfoPage> {
 
             const SizedBox(height: 20),
 
-            /// HEIGHT
             label("Height (cm)"),
             input(heightController),
 
             const SizedBox(height: 15),
 
-            /// WEIGHT
             label("Weight (kg)"),
             input(weightController),
 
             const SizedBox(height: 25),
 
-            /// DATE
             label("Last date of your period"),
 
             TextField(
@@ -80,22 +142,24 @@ class _InfoPageState extends State<InfoPage> {
               readOnly: true,
               decoration: inputDecoration("mm/dd/yyyy"),
               onTap: () async {
-                DateTime? picked = await showDatePicker(
+                final DateTime? picked = await showDatePicker(
                   context: context,
+                  initialDate: DateTime.now(),
                   firstDate: DateTime(2000),
                   lastDate: DateTime.now(),
                 );
-
                 if (picked != null) {
-                  dateController.text =
-                      "${picked.month}/${picked.day}/${picked.year}";
+                  setState(() {
+                    _lastPeriodDate = picked;
+                    dateController.text =
+                        "${picked.month}/${picked.day}/${picked.year}";
+                  });
                 }
               },
             ),
 
             const SizedBox(height: 25),
 
-            /// FLOW
             const Text("Rate your period flow"),
 
             Slider(
@@ -103,7 +167,7 @@ class _InfoPageState extends State<InfoPage> {
               min: 1,
               max: 10,
               divisions: 9,
-              label: flowValue.toString(),
+              label: flowValue.toStringAsFixed(0),
               onChanged: (value) {
                 setState(() {
                   flowValue = value;
@@ -113,7 +177,6 @@ class _InfoPageState extends State<InfoPage> {
 
             const SizedBox(height: 20),
 
-            /// BLOATED
             const Text("Did you experience bloating?"),
 
             Row(
@@ -121,9 +184,7 @@ class _InfoPageState extends State<InfoPage> {
                 choiceButton("YES", bloating, () {
                   setState(() => bloating = true);
                 }),
-
                 const SizedBox(width: 10),
-
                 choiceButton("NO", !bloating, () {
                   setState(() => bloating = false);
                 }),
@@ -132,15 +193,13 @@ class _InfoPageState extends State<InfoPage> {
 
             const SizedBox(height: 25),
 
-            /// SYMPTOMS
             const Text("Symptoms"),
 
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: symptomsList.map((e) {
-                bool selected = symptoms.contains(e);
-
+                final bool selected = symptoms.contains(e);
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -159,7 +218,6 @@ class _InfoPageState extends State<InfoPage> {
 
             const SizedBox(height: 25),
 
-            /// MOOD
             const Text("Current Mood"),
 
             const SizedBox(height: 10),
@@ -170,8 +228,7 @@ class _InfoPageState extends State<InfoPage> {
                 scrollDirection: Axis.horizontal,
                 itemCount: moods.length,
                 itemBuilder: (context, index) {
-                  bool selected = selectedMood == index;
-
+                  final bool selected = selectedMood == index;
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -201,31 +258,32 @@ class _InfoPageState extends State<InfoPage> {
 
             const SizedBox(height: 30),
 
-            /// SAVE BUTTON
+            /// FIX: was  onPressed: () { Navigator.pushNamedAndRemoveUntil... }
+            /// Now calls _saveProfile() which sends data to PATCH /profiles/me.
             SizedBox(
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Profile Saved")),
-                  );
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/home',
-                    (route) => false,
-                  );
-                },
+                onPressed: _saving ? null : _saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff4F6B52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                child: const Text(
-                  "SAVE PROFILE",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child: _saving
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        "SAVE PROFILE",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
               ),
             ),
 
@@ -260,7 +318,8 @@ class _InfoPageState extends State<InfoPage> {
         borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide.none,
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     );
   }
 

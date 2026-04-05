@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:projectapp/screens/signup_screen.dart';
 import 'package:projectapp/screens/landing_screen.dart';
-//import 'package:projectapp/screens/home_screen.dart';
-import 'package:projectapp/screens/info_screen.dart';
+import '../services/fiora_api.dart';
+import '../services/auth_token_store.dart';
+import '../services/user_prefs.dart';
 
+/// LoginPage — this screen is the REGISTER entry point reached from LandingPage.
+/// It now delegates ALL real account creation to SignupScreen (which calls
+/// FioraApi().signup() and stores the JWT).  The old "Sign Up" button used to
+/// navigate directly to InfoPage without touching the backend; that is fixed.
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
@@ -25,7 +30,7 @@ class LoginPage extends StatelessWidget {
                   IconButton(
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LandingPage()),
+                      MaterialPageRoute(builder: (context) => const LandingPage()),
                     ),
                     icon: const Icon(Icons.arrow_back),
                   ),
@@ -68,17 +73,17 @@ class LoginPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  child: Column(
+                  child: const Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         "STEP INTO CALM",
                         style: TextStyle(fontSize: 12, letterSpacing: 2),
                       ),
                       SizedBox(height: 6),
                       Text(
-                        "Join the Fiora",
+                        "Join Fiora",
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -89,61 +94,19 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 40),
 
-              /// Full Name
-              buildLabel("FULL NAME"),
-              buildTextField('Joe'),
-
-              /// Email
-              buildLabel("EMAIL ADDRESS"),
-              buildTextField('joe@'),
-
-              /// Password
-              buildLabel("PASSWORD"),
-              buildTextField('••••••••', obscure: true),
-
-              /// Confirm password
-              buildLabel("CONFIRM PASSWORD"),
-              buildTextField("••••••••", obscure: true),
-
-              const SizedBox(height: 20),
-
-              /// OTP Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "OTP VERIFICATION",
-                      style: TextStyle(letterSpacing: 2),
-                    ),
-                    const SizedBox(height: 20),
-
-                    /// OTP Boxes
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(4, (index) => buildOtpBox()),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "We've sent a 4-digit code to your email.",
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+              const Text(
+                "Create your account to start tracking your cycle, get AI insights and personalised recommendations.",
+                style: TextStyle(fontSize: 15, color: Colors.black54, height: 1.5),
+                textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
-              /// Register Button
+              /// FIX: "Sign Up" now opens SignupScreen (real API call + JWT storage).
+              /// Previously this button pushed directly to InfoPage, bypassing the
+              /// backend entirely and discarding all entered data.
               SizedBox(
                 width: double.infinity,
                 height: 60,
@@ -155,16 +118,15 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Signed up Successfully")),
-                    );
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => InfoPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const SignupScreen(),
+                      ),
                     );
                   },
                   child: const Text(
-                    "Sign Up",
+                    "Create Account",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -176,13 +138,16 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              /// Login text
+              /// FIX: "Already have an account? Login" now opens the real login
+              /// flow (LoginFormScreen below) instead of SignupScreen.
               Center(
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SignupScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const LoginFormScreen(),
+                      ),
                     );
                   },
                   child: RichText(
@@ -212,45 +177,186 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-Widget buildLabel(String text) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 15, bottom: 8),
-    child: Text(text, style: const TextStyle(fontSize: 12, letterSpacing: 1.5)),
-  );
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+class LoginFormScreen extends StatefulWidget {
+  const LoginFormScreen({super.key});
+
+  @override
+  State<LoginFormScreen> createState() => _LoginFormScreenState();
 }
 
-Widget buildTextField(String text, {bool obscure = false}) {
-  return TextField(
-    obscureText: obscure,
-    decoration: InputDecoration(
-      hintText: text,
-      filled: true,
-      fillColor: Colors.grey.shade200,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(40),
-        borderSide: BorderSide.none,
-      ),
-    ),
-  );
-}
+class _LoginFormScreenState extends State<LoginFormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  bool _obscure = true;
+  bool _loading = false;
 
-Widget buildOtpBox() {
-  return SizedBox(
-    width: 55,
-    child: TextField(
-      textAlign: TextAlign.center,
-      maxLength: 1,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        counterText: "",
-        filled: true,
-        fillColor: Colors.grey.shade200,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    try {
+      final api = FioraApi();
+      // POST /api/v1/auth/login — returns { access_token }
+      await api.login(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+      // Eagerly fetch the user's name so the home greeting is correct
+      // immediately after login.
+      try {
+        final me = await api.fetchProfileMe();
+        final name = (me['profile'] as Map?)?['name']?.toString().trim();
+        if (name != null && name.isNotEmpty) {
+          await UserPrefs.saveProfileName(name);
+        }
+      } catch (_) {
+        // Non-fatal; home screen will retry.
+      }
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } on FioraApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.body}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffF4F3F1),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back),
+                    ),
+                    const Spacer(),
+                    const Text('Fiora',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w600)),
+                    const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text('WELCOME BACK',
+                    style: TextStyle(letterSpacing: 1.5, fontSize: 12)),
+                const SizedBox(height: 8),
+                const Text(
+                  'Log in to your account',
+                  style: TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold, height: 1.1),
+                ),
+                const SizedBox(height: 32),
+                _field('Email', _email, (v) {
+                  if (v == null || v.trim().isEmpty) return 'Enter email';
+                  if (!v.contains('@')) return 'Invalid email';
+                  return null;
+                }),
+                _field('Password', _password, (v) {
+                  if (v == null || v.length < 6) return 'Enter password';
+                  return null;
+                }, obscure: true),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff4F6B52),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40)),
+                    ),
+                    child: _loading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Text('Login',
+                            style:
+                                TextStyle(fontSize: 17, color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _field(
+    String label,
+    TextEditingController c,
+    String? Function(String?) validator, {
+    bool obscure = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(),
+              style: const TextStyle(fontSize: 11, letterSpacing: 1)),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: c,
+            obscureText: obscure && _obscure,
+            keyboardType: obscure
+                ? TextInputType.visiblePassword
+                : TextInputType.emailAddress,
+            decoration: InputDecoration(
+              suffixIcon: obscure
+                  ? IconButton(
+                      icon: Icon(
+                          _obscure ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.grey.shade200,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(40),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20, vertical: 16),
+            ),
+            validator: validator,
+          ),
+        ],
+      ),
+    );
+  }
 }
