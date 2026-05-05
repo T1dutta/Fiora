@@ -1,45 +1,56 @@
-# Miscellaneous
-*.class
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables — NEVER commit secrets
+.env
+.env.*
+!.env.example
+
+# Trained ML model binaries (large files — regenerate with train endpoints)
+data/*.pkl
+data/*.bin
+Fiora-model/data/*.pkl
+
+# Logs
 *.log
-*.pyc
-*.swp
+telemetry.log
+model_accuracy.log
+preview.log
+
+# OS
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+Thumbs.db
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# IDEs
+.vscode/
 .idea/
+*.code-workspace
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# Flutter/Dart build output
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/pubspec.lock
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+# Node
+node_modules/
+npm-debug.log*
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
