@@ -12,6 +12,14 @@ from db.mongo import get_user, save_message, get_session_messages, get_summaries
 
 router = APIRouter()
 
+# ── Singleton models loaded once at startup, not per-request ──────────────────
+_pcos_model = PCOSModel()
+_pcos_model.load_model()
+
+_endo_model = EndometriosisModel()
+_endo_model.load_model()
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 @router.post("/chat")
 async def chat(req: ChatRequest):
@@ -22,11 +30,11 @@ async def chat(req: ChatRequest):
 
     history = get_session_messages(req.user_id, limit=20)
     past_summaries = get_summaries(req.user_id, limit=3)
-    
+
     rag_context = ""
     if req.use_rag:
         rag_context = query_rag(req.message)
-    
+
     if past_summaries:
         rag_context = "Past Session Summaries:\n" + "\n".join(past_summaries) + "\n\n" + rag_context
 
@@ -40,41 +48,50 @@ async def chat(req: ChatRequest):
     # --- HIDDEN ML TRIGGER ---
     try:
         symptoms = extract_symptoms_from_chat(req.message)
-        
-        # Pull defaults if missing from cycle_data
+
         cd = user.get("cycle_data", {})
         age = cd.get("age", 25)
         bmi = cd.get("bmi", 24.0)
-        
+
         pcos_risk = False
         if symptoms.get("irregular_periods") or symptoms.get("acne") or symptoms.get("hirsutism_or_excess_hair"):
-            pcos_model = PCOSModel()
-            features = {
-                'Age': age, 'BMI': bmi,
-                'Menstrual_Irregularity': 1 if symptoms.get("irregular_periods") else 0,
-                'Hirsutism_or_Hair_Growth': 1 if symptoms.get("hirsutism_or_excess_hair") else 0,
-                'Acne': 1 if symptoms.get("acne") else 0
-            }
-            if pcos_model.load_model():
-                pred = pcos_model.predict(features)
-                if pred['prediction'] == 1: pcos_risk = True
+            if _pcos_model.model is not None:
+                features = {
+                    'Age': age, 'BMI': bmi,
+                    'Menstrual_Irregularity': 1 if symptoms.get("irregular_periods") else 0,
+                    'Hirsutism_or_Hair_Growth': 1 if symptoms.get("hirsutism_or_excess_hair") else 0,
+                    'Acne': 1 if symptoms.get("acne") else 0
+                }
+                pred = _pcos_model.predict(features)
+                if pred['prediction'] == 1:
+                    pcos_risk = True
 
         endo_risk = False
         if symptoms.get("abdominal_pain") or symptoms.get("irregular_periods"):
-            endo_model = EndometriosisModel()
-            e_features = {
-                'Age': age, 'Menstrual_Irregularity': 1 if symptoms.get("irregular_periods") else 0,
-                'Chronic_Pain_Level': 8.0 if symptoms.get("abdominal_pain") else 0.0,
-                'Hormone_Level_Abnormality': 1 if symptoms.get("hormone_abnormality") else 0,
-                'Infertility': 1 if symptoms.get("infertility_concerns") else 0,
-                'BMI': bmi
-            }
-            if endo_model.load_model():
-                e_pred = endo_model.predict(e_features)
-                if e_pred == 1: endo_risk = True
+            if _endo_model.model is not None:
+                e_features = {
+                    'Age': age,
+                    'Menstrual_Irregularity': 1 if symptoms.get("irregular_periods") else 0,
+                    'Chronic_Pain_Level': 8.0 if symptoms.get("abdominal_pain") else 0.0,
+                    'Hormone_Level_Abnormality': 1 if symptoms.get("hormone_abnormality") else 0,
+                    'Infertility': 1 if symptoms.get("infertility_concerns") else 0,
+                    'BMI': bmi
+                }
+                e_pred = _endo_model.predict(e_features)
+                # predict() returns a dict with 'prediction' key
+                if isinstance(e_pred, dict):
+                    if e_pred.get('prediction') == 1:
+                        endo_risk = True
+                elif e_pred == 1:
+                    endo_risk = True
 
         if pcos_risk or endo_risk:
-            reply += "\n\n*(Proactive Alert: Based on your recent symptoms, my background AI screening detects a potential match for " + ("PCOS" if pcos_risk else "Endometriosis") + " patterns. Please take our detailed Health Screener for a personalized report!)*"
+            condition = "PCOS" if pcos_risk else "Endometriosis"
+            reply += (
+                f"\n\n*(Proactive Alert: Based on your recent symptoms, my background AI screening "
+                f"detects a potential match for {condition} patterns. Please take our detailed "
+                f"Health Screener for a personalized report!)*"
+            )
 
     except Exception as e:
         print(f"Hidden ML trigger failed silently: {e}")

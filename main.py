@@ -6,18 +6,23 @@ from dotenv import load_dotenv
 
 from routes import chat_router, health_router, insights_router, screening_router
 
-
 load_dotenv()
 app = FastAPI(title="Shakti AI Backend", version="1.0.0")
 
-# Add CORS middleware
+
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:8080"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in ALLOWED_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Mount frontend static files
 if os.path.isdir("frontend"):

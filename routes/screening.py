@@ -6,13 +6,20 @@ from ai.pcos_model import PCOSModel
 
 router = APIRouter()
 
+# ── Singleton models loaded once at startup ───────────────────────────────────
+_pcos_model = PCOSModel()
+_pcos_model.load_model()
+
+_endo_model = EndometriosisModel()
+_endo_model.load_model()
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 @router.post("/train-endometriosis-model")
 async def train_endometriosis_model_endpoint():
     """Train the endometriosis risk prediction model using the CSV data"""
     try:
-        model = EndometriosisModel()
-        results = model.train_model()
+        results = _endo_model.train_model()
         return {
             "status": "success",
             "message": "Model trained successfully",
@@ -25,14 +32,13 @@ async def train_endometriosis_model_endpoint():
 
 @router.post("/endometriosis-screening")
 async def endometriosis_screening(req: EndometriosisScreeningRequest):
-    """
-    Screen for endometriosis risk based on patient symptoms and characteristics
-    """
+    """Screen for endometriosis risk based on patient symptoms and characteristics"""
+    if _endo_model.model is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Endometriosis model not trained yet. Call /train-endometriosis-model first."
+        )
     try:
-        # Initialize model and load pre-trained weights
-        model = EndometriosisModel()
-        
-        # Prepare features
         features = {
             'Age': req.age,
             'Menstrual_Irregularity': req.menstrual_irregularity,
@@ -41,13 +47,8 @@ async def endometriosis_screening(req: EndometriosisScreeningRequest):
             'Infertility': req.infertility,
             'BMI': req.bmi
         }
-        
-        # Get prediction
-        prediction = model.predict(features)
-        
-        # Get personalized advice
-        advice = model.get_personalized_advice(prediction, features)
-        
+        prediction = _endo_model.predict(features)
+        advice = _endo_model.get_personalized_advice(prediction, features)
         return {
             "prediction": prediction,
             "personalized_advice": advice,
@@ -60,20 +61,17 @@ async def endometriosis_screening(req: EndometriosisScreeningRequest):
 @router.get("/model-status")
 async def model_status():
     """Check if the endometriosis model is trained and ready"""
-    model = EndometriosisModel()
-    is_loaded = model.load_model()
-    
-    if is_loaded:
+    if _endo_model.model is not None:
         return {
             "status": "ready",
             "message": "Endometriosis model is loaded and ready for predictions",
-            "features": model.feature_names
+            "features": _endo_model.feature_names
         }
     else:
         return {
             "status": "not_trained",
             "message": "Model needs to be trained. Call /train-endometriosis-model first",
-            "features": model.feature_names
+            "features": _endo_model.feature_names
         }
 
 
@@ -81,8 +79,7 @@ async def model_status():
 async def train_pcos_model_endpoint():
     """Train the PCOS risk prediction model"""
     try:
-        model = PCOSModel()
-        results = model.train_model()
+        results = _pcos_model.train_model()
         return {
             "status": "success",
             "message": "PCOS Model trained successfully",
@@ -95,10 +92,12 @@ async def train_pcos_model_endpoint():
 @router.post("/pcos-screening")
 async def pcos_screening(req: PCOSScreeningRequest):
     """Screen for PCOS risk based on patient characteristics"""
+    if _pcos_model.model is None:
+        raise HTTPException(
+            status_code=503,
+            detail="PCOS model not trained yet. Call /train-pcos-model first."
+        )
     try:
-        model = PCOSModel()
-        
-        # Mapped to feature_names in PCOSModel: ['Age', 'BMI', 'Menstrual_Irregularity', 'Hirsutism_or_Hair_Growth', 'Acne']
         features = {
             'Age': req.age,
             'BMI': req.bmi,
@@ -106,9 +105,7 @@ async def pcos_screening(req: PCOSScreeningRequest):
             'Hirsutism_or_Hair_Growth': req.hirsutism,
             'Acne': req.acne
         }
-        
-        prediction = model.predict(features)
-        
+        prediction = _pcos_model.predict(features)
         return {
             "prediction": prediction,
             "disclaimer": "This is a machine learning screening tool, not a medical diagnosis. Always consult with healthcare professionals."
