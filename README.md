@@ -127,5 +127,5 @@ Docs:
 - `http://localhost:8000/redoc`
 
 # Fiora
-Fiora: An AI-powered Women's Health &amp; Wellness app. Features period tracking, mood logging, cycle-aware health insights, and an empathetic AI chatbot (Gemini). Includes voice interaction (ElevenLabs), real-time health sensing (Presage), gamified learning and an alert system with a trusted person. 
+Fiora: Fiora is an AI-powered Women's Health &amp; Wellness app. Its features include period tracking, mood logging, cycle-aware health insights, and an empathetic AI chatbot (Gemini). It also includes voice interaction (ElevenLabs), real-time health sensing (Presage), gamified learning and an alert system with a trusted person. 
 
